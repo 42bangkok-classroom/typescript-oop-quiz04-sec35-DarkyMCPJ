@@ -9,4 +9,8 @@ export class UserController {
   test(): string[] {
     return this.UserService.test();
   }
+  @Get()
+  findAll(): any {
+    return this.UserService.findAll();
+  }
 }
