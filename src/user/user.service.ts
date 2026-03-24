@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { readFileSync } from 'fs';
 Import { IUser } from './user.interface';
 
-Import { readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 Import { join } from 'path';
 
 const usersFilePath = join(__dirname, 'users.json');
