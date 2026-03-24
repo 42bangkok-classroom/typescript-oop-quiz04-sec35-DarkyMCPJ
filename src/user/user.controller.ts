@@ -6,12 +6,12 @@ export class UserController {
   constructor(private readonly UserService: UserService) {}
 
   @Get('test')
-  test(): string[] {
+  test() {
     return this.UserService.test();
   }
-  
+
   @Get()
-  findAll(): any {
+  findAll() {
     return this.UserService.findAll();
   }
 }

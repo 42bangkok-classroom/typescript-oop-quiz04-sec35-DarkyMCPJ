@@ -8,7 +8,7 @@ const filePath = join(__dirname, '../../data/users.json');
 
 @Injectable()
 export class UserService {
-  test(): string[] {
+  test() {
     return [];
   }
 
