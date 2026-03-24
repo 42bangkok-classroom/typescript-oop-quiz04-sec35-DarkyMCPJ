@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
-Import { IUser } from './user.interface';
+import { IUser } from './user.interface';
 
 import { readFileSync } from 'fs';
-Import { join } from 'path';
+import { join } from 'path';
 
-const usersFilePath = join(__dirname, 'users.json');
+const filePath = join(__dirname, '../../data/users.json');
 
 @Injectable()
 export class UserService {
-  test(): string[] {
+  test() {
     return [];
   }
 
-findAll  (): IUser[] {
-    const readUserData = readFileSync(usersFilePath, 'utf-8');
+  findAll(): IUser[] {
+    const readUserData = readFileSync(filePath, 'utf-8');
     const userData = JSON.parse(readUserData) as IUser[];
     return userData;
   }
