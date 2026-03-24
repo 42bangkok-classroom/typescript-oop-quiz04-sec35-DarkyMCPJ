@@ -1,80 +1,57 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { IUser } from './user.interface';
 import * as fs from 'fs';
 import * as path from 'path';
+import { writeFileSync } from 'fs';
 import { CreateUserDto } from './dto/create-user.dto';
-
 @Injectable()
 export class UserService {
-  private readonly dataPath = path.join(process.cwd(), 'data', 'users.json');
-
-  test(): string[] {
+  test() {
     return [];
   }
-
   findAll(): IUser[] {
-    const rawData = fs.readFileSync(this.dataPath, 'utf-8');
-    const users = JSON.parse(rawData) as IUser[];
-    return users;
+    const fileData = fs.readFileSync(
+      path.join(process.cwd(), 'data', 'users.json'),
+      'utf-8',
+    );
+    return JSON.parse(fileData) as IUser[];
   }
-
-  findOne(id: string, fields?: string[]) {
-    try {
-      const users = this.findAll();
-      const user = users.find((u) => String(u.id) === id);
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      if (fields) {
-        const filteredUser: Partial<IUser> = {};
-
-        fields.forEach((field) => {
-          const key = field as keyof IUser;
-
-          if (user[key] !== undefined) {
-            filteredUser[key] = user[key] as never;
-          }
-        });
-
-        return filteredUser;
-      }
-
+  findOne(id: string, fields?: string[]): IUser | Partial<IUser> {
+    const users = this.findAll();
+    const user = users.find((u) => u.id === id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!fields) {
       return user;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Cannot process user data');
     }
+    if (fields.length === 0) {
+      return {};
+    }
+    const fielduser: Partial<IUser> = {};
+    fields.forEach((field) => {
+      if (field in user) {
+        fielduser[field as keyof IUser] = user[field as keyof IUser];
+      }
+    });
+    return fielduser;
   }
+  create(dto: CreateUserDto): IUser {
+    const users = this.findAll();
+    const newId = (
+      users.reduce((maxId, user) => Math.max(maxId, Number(user.id)), 0) + 1
+    ).toString();
 
-  create(createUserDto: CreateUserDto) {
-    try {
-      const filePath = path.join(process.cwd(), 'data', 'users.json');
+    const newUser: IUser = {
+      id: newId,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      username: dto.username,
+      email: dto.email,
+    };
 
-      const users = this.findAll();
-
-      let maxId = 0;
-      if (users.length > 0) {
-        const ids = users.map((u) => parseInt(String(u.id), 10));
-        maxId = Math.max(...ids);
-      }
-      const newId = String(maxId + 1);
-
-      const newUser = {
-        id: newId,
-        ...createUserDto,
-      };
-
-      users.push(newUser as unknown as IUser);
-
-      fs.writeFileSync(filePath, JSON.stringify(users, null, 2), 'utf-8');
-
-      return newUser;
-    } catch {
-      throw new InternalServerErrorException('Cannot create user');
-    }
+    users.push(newUser);
+    writeFileSync('./data/users.json', JSON.stringify(users, null, 2), 'utf-8');
+    return newUser;
   }
 }
